@@ -1,0 +1,14 @@
+﻿  LR2 Sonich Orest.cpp
+C:\C++\LR2 Sonich Orest\LR2 Sonich Orest.cpp(56,19): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\C++\LR2 Sonich Orest\LR2 Sonich Orest.cpp(60,19): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\C++\LR2 Sonich Orest\LR2 Sonich Orest.cpp(64,19): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\C++\LR2 Sonich Orest\LR2 Sonich Orest.cpp(75,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\C++\LR2 Sonich Orest\LR2 Sonich Orest.cpp(82,39): warning C4244: 'argument': conversion from 'double' to 'unsigned long', possible loss of data
+  Generating code
+  0 of 26 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  LR2 Sonich Orest.vcxproj -> C:\C++\LR2 Sonich Orest\x64\Release\LR2 Sonich Orest.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.

@@ -1,52 +1,12 @@
-#define _CRT_SECURE_NO_WARNINGS 
+#define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
-
 
 
 #ifndef TO_BMP_IMPLEMENTATION
 #define TO_BMP_IMPLEMENTATION
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
+#include <iostream>
+#include <cmath>
 #include "LR2 Sonich Orest.cpp"
-
-#define OUTPUT_SIZE   512
-#define OUTPUT_WIDTH  OUTPUT_SIZE
-#define OUTPUT_HEIGHT OUTPUT_SIZE
-#define NEIGHBOURHOOD 0
-#define OUTPUT_SCALE 16
-
-
-void mark(BMP* bmpPtr, UINT neighbourhood, UINT xSize, UINT ySize, UCHAR pt, UINT scale) {
-	UINT neighbourhood2 = 2 * neighbourhood;
-	UINT 	xO, yO;
-
-	for (UINT x = 0; x < xSize; ++x) {
-		for (UINT y = 0; !y || (!(x % scale) && y < 10); ++y) {
-			for (xO = 0; xO <= neighbourhood2; ++xO) {
-				for (yO = 0; yO <= neighbourhood2; ++yO) {
-					if (x + xO >= neighbourhood && x + xO - neighbourhood < xSize && y + yO >= neighbourhood && y + yO - neighbourhood < ySize) {
-						BMP_SetPixelIndex(bmpPtr, x + xO - neighbourhood, ySize - (y + yO - neighbourhood), pt);
-					}
-				}
-			}
-		}
-	}
-
-	for (UINT y = 0; y < ySize; ++y) {
-		for (UINT x = 0; !x || (!(y % scale) && x < 10); ++x) {
-			for (xO = 0; xO <= neighbourhood2; ++xO) {
-				for (yO = 0; yO <= neighbourhood2; ++yO) {
-					if (x + xO >= neighbourhood && x + xO - neighbourhood < xSize && y + yO >= neighbourhood && y + yO - neighbourhood < ySize) {
-						BMP_SetPixelIndex(bmpPtr, x + xO - neighbourhood, ySize - (y + yO - neighbourhood), pt);
-					}
-				}
-			}
-		}
-	}
-}
 
 double factorial(int n) {
 	double fact = 1;
@@ -55,96 +15,96 @@ double factorial(int n) {
 	}
 	return fact;
 }
+void drawAxes(BMP* bmp, int width, int height, int scale) {
+	for (int i = 0; i < width; i++) {
+		for (int j = height - 3; j < height; j++) {
+			BMP_SetPixelRGB(bmp, i, j, 255, 0, 0);
+		}
+	}
+	for (int i = 0; i < 3; i++) { 
+		for (int j = 0; j < height; j++) {
+			BMP_SetPixelRGB(bmp, i, j, 255, 0, 0);
+		}
+	}
+}
+void drawGrid(BMP* bmp, int width, int height, int scale) {
+	// Відтінок сірого для сітки
+	unsigned char grid_color = 60;
 
-double functionForTabulateK3(double arg) {
-	return factorial((int)round(arg)) / pow(arg, 3.);
-	//return pow(2, arg) / pow(arg, 3.);
+	for (int i = 0; i < height; i += scale) {
+		for (int j = 0; j < width; j++) {
+			BMP_SetPixelRGB(bmp, j, i, grid_color, grid_color, grid_color);
+		}
+	}
+
+	for (int i = 0; i < width; i += scale) {
+		for (int j = 0; j < height; j++) {
+			BMP_SetPixelRGB(bmp, i, j, grid_color, grid_color, grid_color);
+		}
+	}
 }
 
-double functionForTabulateK4(double arg) {
-	return factorial((int)round(arg)) / pow(arg, 4.);
-	//return pow(2,arg) / pow(arg, 4.);
 
+void drawBackground(BMP* bmp, int width, int height, int scale){
+	drawAxes(bmp, width, height, scale);
+	drawGrid(bmp, width, height, 100);
 }
 
-double functionForTabulateK5(double arg) {
-	return factorial((int)round(arg)) / pow(arg, 5.);
-	//return pow(2, arg) / pow(arg, 5.);
 
+
+double K3(double arg) {
+	return factorial(arg) / pow(arg, 3.);
 }
 
-void tabulate(double(*functionPtr)(double arg), BMP* bmpPtr, UINT neighbourhood, UINT xSize, UINT ySize, UCHAR pt, UINT scale) {
-	UINT neighbourhood2 = 2 * neighbourhood;
-	UINT 	xO, yO;
-	UINT 	fraction;
-	UINT 	scaledXSize = (UINT)((double)xSize / (double)scale);
-	for (UINT x_ = 0; x_ < scaledXSize; x_++) {
-		for (fraction = 0; fraction < scale; ++fraction) {
-			double fX = (double)fraction / (double)scale + (double)x_;
-			UINT x = (UINT)(fX * (double)scale);
-			UINT y = (UINT)(functionPtr(fX) * (double)scale);
-			for (xO = 0; xO <= neighbourhood2; xO++) {
-				for (yO = 0; yO <= neighbourhood2; yO++) {
-					if (x + xO >= neighbourhood && x + xO - neighbourhood < xSize && y + yO >= neighbourhood && y + yO - neighbourhood < ySize) {
-						BMP_SetPixelIndex(bmpPtr, x + xO - neighbourhood, ySize - (y + yO - neighbourhood), pt);
+double K4(double arg) {
+	return factorial(arg) / pow(arg, 4.);
+}
+
+double K5(double arg) {
+	return factorial(arg) / pow(arg, 5.);
+}
+void createGraph(BMP* bmp, int width, int height, int scale, double (*func)(double), const char* filename) {
+	drawBackground(bmp, width, height, scale);
+	for (int n = 1; n < width / scale; n++) {
+		double y1 = func(n);
+		double y2 = func(n + 1);
+
+		for (double m = 0; m < 1; m += 0.01) {
+			double y = y1 * (1 - m) + y2 * m;
+			if (y < height / scale) {
+				int x = (n + m) * scale;
+				y = (height - y * scale) - 3; // змінюємо положення осі y
+
+				// збільшуємо товщину точок
+				for (int dx = -1; dx <= 1; dx++) {
+					for (int dy = -1; dy <= 1; dy++) {
+						if (x + dx >= 0 && x + dx < width && y + dy >= 0 && y + dy < height) {
+							BMP_SetPixelRGB(bmp, x + dx, y + dy, 0, 255, 0); // змінюємо колір графіку на зелений
+						}
 					}
 				}
 			}
 		}
 	}
+	BMP_WriteFile(bmp, filename);
+	BMP_Free(bmp);
 }
 
 int main(int argc, char* argv[])
 {
-	BMP* outputForK3, * outputForK4, * outputForK5;
-	UCHAR 	r = 0xff, g = 0xff, b = 0xff;
+	
+	const int width = 800;
+	const int height = 600;
+	const int scale = 50;
 
-	outputForK3 = BMP_Create(OUTPUT_WIDTH, OUTPUT_HEIGHT, 8);
-	BMP_CHECK_ERROR(stderr, -3);
+	
+	createGraph(BMP_Create(width, height, 24), width, height, scale, K3, "K3.bmp");
+	createGraph(BMP_Create(width, height, 24), width, height, scale, K4, "K4.bmp");
+	createGraph(BMP_Create(width, height, 24), width, height, scale, K5, "K5.bmp");
 
-	outputForK4 = BMP_Create(OUTPUT_WIDTH, OUTPUT_HEIGHT, 8);
-	BMP_CHECK_ERROR(stderr, -3);
 
-	outputForK5 = BMP_Create(OUTPUT_WIDTH, OUTPUT_HEIGHT, 8);
-	BMP_CHECK_ERROR(stderr, -3);
-
-	BMP_SetPaletteColor(outputForK3, 2, 0, 255, 0);
-	BMP_SetPaletteColor(outputForK3, 1, 255, 0, 0);
-	BMP_SetPaletteColor(outputForK3, 0, 0, 0, 0);
-
-	BMP_SetPaletteColor(outputForK4, 2, 0, 255, 0);
-	BMP_SetPaletteColor(outputForK4, 1, 255, 0, 0);
-	BMP_SetPaletteColor(outputForK4, 0, 0, 0, 0);
-
-	BMP_SetPaletteColor(outputForK5, 2, 0, 255, 0);
-	BMP_SetPaletteColor(outputForK5, 1, 255, 0, 0);
-	BMP_SetPaletteColor(outputForK5, 0, 0, 0, 0);
-
-	mark(outputForK3, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, 1, OUTPUT_SCALE);
-	tabulate(functionForTabulateK3, outputForK3, NEIGHBOURHOOD, OUTPUT_WIDTH, OUTPUT_HEIGHT, 2, OUTPUT_SCALE);
-
-	mark(outputForK4, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, 1, OUTPUT_SCALE);
-	tabulate(functionForTabulateK4, outputForK4, NEIGHBOURHOOD, OUTPUT_WIDTH, OUTPUT_HEIGHT, 2, OUTPUT_SCALE);
-
-	mark(outputForK5, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, 1, OUTPUT_SCALE);
-	tabulate(functionForTabulateK5, outputForK5, NEIGHBOURHOOD, OUTPUT_WIDTH, OUTPUT_HEIGHT, 2, OUTPUT_SCALE);
-
-	BMP_WriteFile(outputForK3, "K3.bmp");
-	BMP_CHECK_ERROR(stderr, -5);
-
-	BMP_WriteFile(outputForK4, "K4.bmp");
-	BMP_CHECK_ERROR(stderr, -5);
-
-	BMP_WriteFile(outputForK5, "K5.bmp");
-	BMP_CHECK_ERROR(stderr, -5);
-
-	BMP_Free(outputForK3);
-	BMP_Free(outputForK4);
-	BMP_Free(outputForK5);
-
-	printf("Result writed to \"out.bmp\".\r\n");
-	printf("After closing the program, open it manually.\r\n\r\n");
-	(void)getchar();
+	std::cout << "Result writed in K3.bmp, K4.bmp and K5.bmp" << std::endl;
+	std::cout << "Open these files in root directory" << std::endl;
 
 	return 0;
 }
